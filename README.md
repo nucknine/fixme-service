@@ -12,7 +12,7 @@ These services are required to be executed first with so as to prevent errors wh
 * `postgres`
   * `docker compose up -d postgres`
 * `rabbitmq`
-  * `docker compose up -d redis`
+  * `docker compose up -d rabbitmq`
 * `elasticsearch`
   * `docker compose up -d elasticsearch`
   * It could take somewhere between 5 and 10 minutes for elasticsearch to be running.
@@ -26,6 +26,11 @@ These services are required to be executed first with so as to prevent errors wh
   * `bin/elasticsearch-service-tokens create elastic/kibana jobber-kibana`
   * If the service account token was generated, it will be displayed.
   * Once generated, copy and add it to the kibana environment variable `ELASTICSEARCH_SERVICEACCOUNT_TOKEN` inside your docker compose file
+
+
+* `kibana`
+  * `docker compose up -d kibana`
+
 
 ## Heartbeat file
 * Replace `<your-ip-address>` with your own ip address inside the `heartbeat.yml`.
