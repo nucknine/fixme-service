@@ -97,6 +97,8 @@ services:
       - ELASTICSEARCH_HOSTS=["http://elasticsearch_container:9200"]
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=kibana
+      - ELASTICSEARCH_SERVICEACCOUNT_TOKEN=AAEAAWVsYXN0aWMva2liYW5hL2pvYmJlci1raWJhbmE6R0pFZEdQY1FTZXUxWTJaakZPRUJMUQ
+      - XPACK_FLEET_AGENTS_ELASTICSEARCH_HOSTS=["http://elasticsearch_container:9200"]
     networks:
       - elastic
     volumes:

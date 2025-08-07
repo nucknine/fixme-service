@@ -19,6 +19,7 @@ These services are required to be executed first with so as to prevent errors wh
 
 ## Setting up Kibana
 * Using a kibana docker image greater than 8.10.x, the setup is a bit different.
+this setup is needed every time when installing fresh es or removing es volume
 * Once elasticsearch is running, open the elasticsearch container terminal and change the password of kibana_system
   * `curl -s -X POST -u elastic:admin1234 -H "Content-Type: application/json" http://localhost:9200/_security/user/kibana_system/_password -d "{\"password\":\"kibana\"}"`
   * If the update was successful, you should see a `{}` displayed in the terminal.
@@ -30,6 +31,7 @@ These services are required to be executed first with so as to prevent errors wh
 
 * `kibana`
   * `docker compose up -d kibana`
+  * open `http://localhost:5601/` name: `elastic` pwd: `admin1234`
 
 
 ## Heartbeat file
