@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "main": "index.js",
-  "description": "Helpers library for Dictionary app",
+  "description": "Helpers library for FixMe app",
   "engines": {
     "node": ">=18"
   },
@@ -18,11 +18,11 @@
     "trailingComma": "es5"
   },
   "keywords": [],
-  "name": "@nucknine/app-shared",
+  "name": "@nucknine/fixme-shared",
   "author": "NuckNine",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/nucknine/fixme-shared.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
