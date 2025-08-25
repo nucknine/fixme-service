@@ -4,15 +4,19 @@ import { ElasticsearchTransformer, ElasticsearchTransport, LogData, TransformedD
 const esTransformer = (logData: LogData): TransformedData => {
   return ElasticsearchTransformer(logData);
 }
-
+// elasticsearchNode - elasticsearch URL
+// name - service name
+// level - log level
 export const winstonLogger = (elasticsearchNode: string, name: string, level: string): Logger => {
   const options = {
+    // for local dev
     console: {
       level,
       handleExceptions: true,
       json: false,
       colorize: true
     },
+    // for elasticsearch
     elasticsearch: {
       level,
       transformer: esTransformer,
