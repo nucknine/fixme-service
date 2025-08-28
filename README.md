@@ -1,5 +1,5 @@
-# dictionary-service
-Dictionary service for the public usage
+# Fixme-service
+Fixme service for the public usage
 
 ## Run docker compose services
 These services are required to be executed first with so as to prevent errors when you start your microservices.
