@@ -6,31 +6,34 @@ import { Logger } from 'winston';
 import { config } from '@notifications/config';
 import { Application } from 'express';
 import { healthRoutes } from '@notifications/routes';
-// import { checkConnection } from '@notifications/elasticsearch';
+import { checkConnection } from '@notifications/elasticsearch';
 // import { createConnection } from '@notifications/queues/connection';
 // import { Channel } from 'amqplib';
 // import { consumeAuthEmailMessages, consumeOrderEmailMessages } from '@notifications/queues/email.consumer';
 
+// API gateway PORT - 4000
+// Notification service PORT - 4001
 const SERVER_PORT = 4001;
+// sends notification service logs to ES (go to http://localhost:5601/ to check)
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'notificationServer', 'debug');
 
 export function start(app: Application): void {
   startServer(app);
   // http://localhost:4001/notification-health
   app.use('', healthRoutes());
-//   startQueues();
-//   startElasticSearch();
+  startQueues();
+  startElasticSearch();
 }
 
-// async function startQueues(): Promise<void> {
-//   const emailChannel: Channel = await createConnection() as Channel;
-//   await consumeAuthEmailMessages(emailChannel);
-//   await consumeOrderEmailMessages(emailChannel);
-// }
+async function startQueues(): Promise<void> {
+  // const emailChannel: Channel = await createConnection() as Channel;
+  // await consumeAuthEmailMessages(emailChannel);
+  // await consumeOrderEmailMessages(emailChannel);
+}
 
-// function startElasticSearch(): void {
-//   checkConnection();
-// }
+function startElasticSearch(): void {
+  checkConnection();
+}
 
 function startServer(app: Application): void {
   try {

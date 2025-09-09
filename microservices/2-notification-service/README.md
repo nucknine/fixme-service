@@ -1,5 +1,30 @@
 # TypeScript Path Aliases
 
+## Connections
+
+### ENABLE_APM
+send the code to the application monitoring platform.
+
+### CLIENT_URL
+http://localhost:3000
+
+### RABBITMQ_ENDPOINT
+#amqp - protocol RABBITMQ_DEFAULT_USER:RABBITMQ_DEFAULT_PASS@URL:PORT
+RABBITMQ_ENDPOINT=amqp://fixme:fixmepass@localhost:5672
+
+### ELASTIC_SEARCH_URL
+http://elastic:password123@localhost:9200
+elastic:admin1234@ — user name and password
+- #elastic# - это стандартный суперпользователь, который создаётся по умолчанию при включении безопасности (xpack.security.enabled: true)
+- Имеет полный доступ ко всем API и данным.
+- Пароль задаётся через переменную окружения ELASTIC_PASSWORD, как у тебя: admin1234.
+ELASTIC_SEARCH_URL=http://elastic:admin1234@localhost:9200
+
+### SERVER_PORT
+API gateway PORT - 4000
+Notification service PORT - 4001
+and so on...
+
 ## Инструменты
 
 ### ts-node

@@ -24,7 +24,7 @@ this setup is needed every time when installing fresh es or removing es volume
   * `curl -s -X POST -u elastic:admin1234 -H "Content-Type: application/json" http://localhost:9200/_security/user/kibana_system/_password -d "{\"password\":\"kibana\"}"`
   * If the update was successful, you should see a `{}` displayed in the terminal.
 * Also from the elasticsearch container terminal, create a kibana service token
-  * `bin/elasticsearch-service-tokens create elastic/kibana jobber-kibana`
+  * `bin/elasticsearch-service-tokens create elastic/kibana fixme-kibana`
   * If the service account token was generated, it will be displayed.
   * Once generated, copy and add it to the kibana environment variable `ELASTICSEARCH_SERVICEACCOUNT_TOKEN` inside your docker compose file
 
