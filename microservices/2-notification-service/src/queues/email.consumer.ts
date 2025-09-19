@@ -35,7 +35,10 @@ async function consumeAuthEmailMessages(channel: Channel | undefined): Promise<v
     */
     await channel.assertExchange(exchangeName, 'direct');
     const fixmeQueue = await channel.assertQueue(queueName, { durable: true, autoDelete: false });
-
+    // связывает очередь с обменником (exchange) через указанный ключ маршрутизации (routing key)
+    // bindQueue говорит RabbitMQ:
+    // «Сообщения, отправленные в этот exchange с таким ключом, должны попадать в эту очередь».
+    // Это необходимо для правильной маршрутизации сообщений в системе
     await channel.bindQueue(fixmeQueue.queue, exchangeName, routingKey);
     channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
       const { receiverEmail, username, verifyLink, resetLink, template, otp } = JSON.parse(msg!.content.toString());
