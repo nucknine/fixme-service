@@ -14,7 +14,7 @@ RABBITMQ_ENDPOINT=amqp://fixme:fixmepass@localhost:5672
 
 ### ELASTIC_SEARCH_URL
 http://elastic:password123@localhost:9200
-elastic:admin1234@ — user name and password
+elastic:admin1234@ — user name and pass
 - #elastic# - это стандартный суперпользователь, который создаётся по умолчанию при включении безопасности (xpack.security.enabled: true)
 - Имеет полный доступ ко всем API и данным.
 - Пароль задаётся через переменную окружения ELASTIC_PASSWORD, как у тебя: admin1234.
