@@ -40,6 +40,8 @@ async function consumeAuthEmailMessages(channel: Channel | undefined): Promise<v
     // «Сообщения, отправленные в этот exchange с таким ключом, должны попадать в эту очередь».
     // Это необходимо для правильной маршрутизации сообщений в системе
     await channel.bindQueue(fixmeQueue.queue, exchangeName, routingKey);
+    // начинает прослушивание очереди и обработку входящих сообщений
+    // регистрирует обработчик (callback), который будет вызываться каждый раз, когда в очередь поступает новое сообщение
     channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
       const { receiverEmail, username, verifyLink, resetLink, template, otp } = JSON.parse(msg!.content.toString());
       const locals: IEmailLocals = {
