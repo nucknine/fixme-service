@@ -7,9 +7,9 @@ import { config } from '@notifications/config';
 import { Application } from 'express';
 import { healthRoutes } from '@notifications/routes';
 import { checkConnection } from '@notifications/elasticsearch';
-// import { createConnection } from '@notifications/queues/connection';
-// import { Channel } from 'amqplib';
-// import { consumeAuthEmailMessages, consumeOrderEmailMessages } from '@notifications/queues/email.consumer';
+import { Channel } from 'amqplib';
+import { createConnection } from '@notifications/queues/connection';
+import { consumeAuthEmailMessages, consumeOrderEmailMessages } from '@notifications/queues/email.consumer';
 
 // API gateway PORT - 4000
 // Notification service PORT - 4001
@@ -49,9 +49,12 @@ export function start(app: Application): void {
 }
 
 async function startQueues(): Promise<void> {
-  // const emailChannel: Channel = await createConnection() as Channel;
-  // await consumeAuthEmailMessages(emailChannel);
-  // await consumeOrderEmailMessages(emailChannel);
+  const emailChannel: Channel | undefined = await createConnection();
+  console.log('%c🤪 ~ file: server.ts:52 [] -> emailChannel : ', 'color: #404699', emailChannel);
+
+    await consumeAuthEmailMessages(emailChannel);
+    await consumeOrderEmailMessages(emailChannel);
+
 }
 
 function startElasticSearch(): void {
