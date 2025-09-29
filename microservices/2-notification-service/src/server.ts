@@ -50,11 +50,15 @@ export function start(app: Application): void {
 
 async function startQueues(): Promise<void> {
   const emailChannel: Channel | undefined = await createConnection();
-  console.log('%c🤪 ~ file: server.ts:52 [] -> emailChannel : ', 'color: #404699', emailChannel);
 
     await consumeAuthEmailMessages(emailChannel);
     await consumeOrderEmailMessages(emailChannel);
 
+    await emailChannel?.assertExchange('fixme-email-notification', 'direct')
+    await emailChannel?.assertExchange('fixme-order-notification', 'direct')
+
+    await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify({name:'fixme-email-msg', service: "notifiic"})));
+    await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
 }
 
 function startElasticSearch(): void {
