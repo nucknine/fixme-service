@@ -4,6 +4,7 @@ import { IEmailLocals, winstonLogger } from '@nucknine/fixme-shared';
 import { Logger } from 'winston';
 import { config } from '@notifications/config';
 import nodemailer, { Transporter } from 'nodemailer';
+// supports pug or ejs template-engines
 import Email from 'email-templates';
 
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'mailTransportHelper', 'debug');
@@ -11,6 +12,7 @@ const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'mailTransport
 async function emailTemplates(template: string, receiver: string, locals: IEmailLocals): Promise<void> {
   try {
     const smtpTransport: Transporter = nodemailer.createTransport({
+      // 'Ethereal.mail' - service (fake SMTP) to test account to work with Nodemailer
       host: 'smtp.ethereal.email',
       port: 587,
       auth: {
@@ -20,7 +22,7 @@ async function emailTemplates(template: string, receiver: string, locals: IEmail
     });
     const email: Email = new Email({
       message: {
-        from: `Jobber App <${config.SENDER_EMAIL}>`
+        from: `Fixme App <${config.SENDER_EMAIL}>`
       },
       send: true,
       preview: false,
@@ -30,6 +32,7 @@ async function emailTemplates(template: string, receiver: string, locals: IEmail
           extension: 'ejs'
         }
       },
+      // juice prop to use inline css
       juice: true,
       juiceResources: {
         preserveImportant: true,

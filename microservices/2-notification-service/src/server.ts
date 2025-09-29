@@ -1,7 +1,7 @@
 import 'express-async-errors';
 import http from 'http';
 
-import { winstonLogger } from '@nucknine/fixme-shared';
+import { IEmailMessageDetails, winstonLogger } from '@nucknine/fixme-shared';
 import { Logger } from 'winston';
 import { config } from '@notifications/config';
 import { Application } from 'express';
@@ -56,9 +56,14 @@ async function startQueues(): Promise<void> {
 
     await emailChannel?.assertExchange('fixme-email-notification', 'direct')
     await emailChannel?.assertExchange('fixme-order-notification', 'direct')
-
-    await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify({name:'fixme-email-msg', service: "notifiic"})));
-    await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
+    const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=12345534dsfsdfs`;
+    const messageDetails: IEmailMessageDetails = {
+      receiverEmail: `${config.SENDER_EMAIL}`,
+      verifyLink: verificationLink,
+      template: 'verifyEmail'
+    }
+    await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify(messageDetails)));
+    // await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
 }
 
 function startElasticSearch(): void {

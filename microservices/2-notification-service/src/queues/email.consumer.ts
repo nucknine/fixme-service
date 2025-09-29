@@ -1,9 +1,9 @@
 import { config } from '@notifications/config';
-import {  winstonLogger } from '@nucknine/fixme-shared';
+import {  IEmailLocals, winstonLogger } from '@nucknine/fixme-shared';
 import { Channel, ConsumeMessage } from 'amqplib';
 import { Logger } from 'winston';
 import { createConnection } from '@notifications/queues/connection';
-// import { sendEmail } from '@notifications/queues/mail.transport';
+import { sendEmail } from '@notifications/queues/mail.transport';
 
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'emailConsumer', 'debug');
 
@@ -42,23 +42,20 @@ async function consumeAuthEmailMessages(channel: Channel | undefined): Promise<v
     await channel.bindQueue(fixmeQueue.queue, exchangeName, routingKey);
     // начинает прослушивание очереди и обработку входящих сообщений
     // регистрирует обработчик (callback), который будет вызываться каждый раз, когда в очередь поступает новое сообщение
-    // channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
-    //   const { receiverEmail, username, verifyLink, resetLink, template, otp } = JSON.parse(msg!.content.toString());
-    //   const locals: IEmailLocals = {
-    //     appLink: `${config.CLIENT_URL}`,
-    //     appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
-    //     username,
-    //     verifyLink,
-    //     resetLink,
-    //     otp
-    //   };
-    //   await sendEmail(template, receiverEmail, locals);
-    //   channel?.ack(msg!);
-    // });
     channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
-      console.log("CONSUMING EMAIL", msg!.content.toString());
-      channel?.ack(msg!)
+      const { receiverEmail, username, verifyLink, resetLink, template } = JSON.parse(msg!.content.toString());
+      const locals: IEmailLocals = {
+        appLink: `${config.CLIENT_URL}`,
+        appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
+        username,
+        verifyLink,
+        resetLink,
+
+      };
+      await sendEmail(template, receiverEmail, locals);
+      channel?.ack(msg!);
     });
+
   } catch (error) {
     log.log('error', 'NotificationService EmailConsumer consumeAuthEmailMessages() method error:', error);
   }
