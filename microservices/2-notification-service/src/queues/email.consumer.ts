@@ -43,7 +43,9 @@ async function consumeAuthEmailMessages(channel: Channel | undefined): Promise<v
     // начинает прослушивание очереди и обработку входящих сообщений
     // регистрирует обработчик (callback), который будет вызываться каждый раз, когда в очередь поступает новое сообщение
     channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
-      const { receiverEmail, username, verifyLink, resetLink, template } = JSON.parse(msg!.content.toString());
+      // toString преобразует бинарныее данные Buffer в строку
+      const jsonStr = msg!.content.toString('utf8');
+      const { receiverEmail, username, verifyLink, resetLink, template } = JSON.parse(jsonStr);
       const locals: IEmailLocals = {
         appLink: `${config.CLIENT_URL}`,
         appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
@@ -80,70 +82,69 @@ async function consumeOrderEmailMessages(channel: Channel | undefined): Promise<
     await channel.bindQueue(fixmeQueue.queue, exchangeName, routingKey);
 
     channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
-      console.log("CONSUMING ORDER", msg!.content.toString());
-      channel?.ack(msg!)
+      // toString преобразует бинарныее данные Buffer в строку
+      const jsonStr = msg!.content.toString('utf8');
+      const {
+        receiverEmail,
+        username,
+        template,
+        sender,
+        offerLink,
+        amount,
+        buyerUsername,
+        sellerUsername,
+        title,
+        description,
+        deliveryDays,
+        orderId,
+        orderDue,
+        requirements,
+        orderUrl,
+        originalDate,
+        newDate,
+        reason,
+        subject,
+        header,
+        type,
+        message,
+        serviceFee,
+        total
+
+      } = JSON.parse(jsonStr);
+      const locals: IEmailLocals = {
+        appLink: `${config.CLIENT_URL}`,
+        appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
+        username,
+        sender,
+        offerLink,
+        amount,
+        buyerUsername,
+        sellerUsername,
+        title,
+        description,
+        deliveryDays,
+        orderId,
+        orderDue,
+        requirements,
+        orderUrl,
+        originalDate,
+        newDate,
+        reason,
+        subject,
+        header,
+        type,
+        message,
+        serviceFee,
+        total
+      };
+      if (template === 'orderPlaced') {
+        await sendEmail('orderPlaced', receiverEmail, locals);
+        await sendEmail('orderReceipt', receiverEmail, locals);
+      } else {
+        await sendEmail(template, receiverEmail, locals);
+      }
+      channel?.ack(msg!);
     });
-  //   channel.consume(fixmeQueue.queue, async (msg: ConsumeMessage | null) => {
-  //     const {
-  //       receiverEmail,
-  //       username,
-  //       template,
-  //       sender,
-  //       offerLink,
-  //       amount,
-  //       buyerUsername,
-  //       sellerUsername,
-  //       title,
-  //       description,
-  //       deliveryDays,
-  //       orderId,
-  //       orderDue,
-  //       requirements,
-  //       orderUrl,
-  //       originalDate,
-  //       newDate,
-  //       reason,
-  //       subject,
-  //       header,
-  //       type,
-  //       message,
-  //       serviceFee,
-  //       total
-  //     } = JSON.parse(msg!.content.toString());
-  //     const locals: IEmailLocals = {
-  //       appLink: `${config.CLIENT_URL}`,
-  //       appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
-  //       username,
-  //       sender,
-  //       offerLink,
-  //       amount,
-  //       buyerUsername,
-  //       sellerUsername,
-  //       title,
-  //       description,
-  //       deliveryDays,
-  //       orderId,
-  //       orderDue,
-  //       requirements,
-  //       orderUrl,
-  //       originalDate,
-  //       newDate,
-  //       reason,
-  //       subject,
-  //       header,
-  //       type,
-  //       message,
-  //       serviceFee,
-  //       total
-  //     };
-  //     if (template === 'orderPlaced') {
-  //       await sendEmail('orderPlaced', receiverEmail, locals);
-  //       await sendEmail('orderReceipt', receiverEmail, locals);
-  //     } else {
-  //       await sendEmail(template, receiverEmail, locals);
-  //     }
-  //     channel?.ack(msg!);
-  //   });
   } catch (error) {
     log.log('error', 'NotificationService EmailConsumer consumeOrderEmailMessages() method error:', error);
   }

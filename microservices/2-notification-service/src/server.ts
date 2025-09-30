@@ -1,15 +1,14 @@
 import 'express-async-errors';
 import http from 'http';
-
-import { IEmailMessageDetails, winstonLogger } from '@nucknine/fixme-shared';
-import { Logger } from 'winston';
 import { config } from '@notifications/config';
-import { Application } from 'express';
-import { healthRoutes } from '@notifications/routes';
 import { checkConnection } from '@notifications/elasticsearch';
-import { Channel } from 'amqplib';
 import { createConnection } from '@notifications/queues/connection';
 import { consumeAuthEmailMessages, consumeOrderEmailMessages } from '@notifications/queues/email.consumer';
+import { healthRoutes } from '@notifications/routes';
+import { winstonLogger } from '@nucknine/fixme-shared';
+import { Channel } from 'amqplib';
+import { Application } from 'express';
+import { Logger } from 'winston';
 
 // API gateway PORT - 4000
 // Notification service PORT - 4001
@@ -56,13 +55,15 @@ async function startQueues(): Promise<void> {
 
     await emailChannel?.assertExchange('fixme-email-notification', 'direct')
     await emailChannel?.assertExchange('fixme-order-notification', 'direct')
-    const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=12345534dsfsdfs`;
-    const messageDetails: IEmailMessageDetails = {
-      receiverEmail: `${config.SENDER_EMAIL}`,
-      verifyLink: verificationLink,
-      template: 'verifyEmail'
-    }
-    await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify(messageDetails)));
+
+    // Test message publishing:
+    // const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=12345534dsfsdfs`;
+    // const message: IEmailMessageDetails = {
+    //   receiverEmail: `${config.SENDER_EMAIL}`,
+    //   verifyLink: verificationLink,
+    //   template: 'verifyEmail'
+    // }
+    // await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify(message)));
     // await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
 }
 
