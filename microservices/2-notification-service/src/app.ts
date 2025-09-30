@@ -1,4 +1,6 @@
-// Polyfill for ReadableStream in Node.js < 18
+// Polyfills for Node.js 18 compatibility
+import './polyfills';
+
 if (!global.ReadableStream) {
   global.ReadableStream = require('stream/web').ReadableStream;
 }
