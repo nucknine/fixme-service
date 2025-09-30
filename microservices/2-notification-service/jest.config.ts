@@ -2,15 +2,15 @@ import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'node', // for the browser set jsdom
   verbose: true,
   coverageDirectory: 'coverage',
   collectCoverage: true,
   testPathIgnorePatterns: ['/node_modules'],
   transform: {
-    '^.+\\.ts?$': 'ts-jest'
+    '^.+\\.ts?$': 'ts-jest' // any file with ts extension to jest.ts (name.ts -> name.jest.ts)
   },
-  testMatch: ['<rootDir>/src/**/test/*.ts'],
+  testMatch: ['<rootDir>/src/**/test/*.ts'], // find all .ts files in "test" subfolder
   collectCoverageFrom: ['src/**/*.ts', '!src/**/test/*.ts?(x)', '!**/node_modules/**'],
   coverageThreshold: {
     global: {
