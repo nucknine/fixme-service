@@ -20,11 +20,17 @@ These services are required to be executed first with so as to prevent errors wh
 ## Setting up Kibana
 * Using a kibana docker image greater than 8.10.x, the setup is a bit different.
 this setup is needed every time when installing fresh es or removing es volume
+* **IMPORTANT**: Running `docker compose stop elasticsearch && docker compose rm -f elasticsearch` will reset the service token and require regenerating it.
+* **IMPORTANT**: Removing elasticsearch volumes (e.g., `sudo rm -rf ./docker-volumes/elasticsearch`) will also reset the service token and require regenerating it.
 * Once elasticsearch is running, open the elasticsearch container terminal and change the password of kibana_system
   * `curl -s -X POST -u elastic:admin1234 -H "Content-Type: application/json" http://localhost:9200/_security/user/kibana_system/_password -d "{\"password\":\"kibana\"}"`
+  * OR `docker exec elasticsearch_container curl -s -X POST -u elastic:admin1234 -H "Content-Type: application/json" http://localhost:9200/_security/user/kibana_system/_password -d "{\"password\":\"kibana\"}"
+{}`
   * If the update was successful, you should see a `{}` displayed in the terminal.
 * Also from the elasticsearch container terminal, create a kibana service token
   * `bin/elasticsearch-service-tokens create elastic/kibana fixme-kibana`
+  * OR `docker exec elasticsearch_container bin/elasticsearch-service-tokens create elastic/kibana fixme-kibana`
+  ** Elasticsearch responded with: `SERVICE_TOKEN elastic/kibana/fixme-kibana = AAEAAWVsYXN0aWMva2liYW5hL2ZpeG1lLWtpYmFuYTp0bjBzTk5oV1JGZXJhNVFfaEFubllB`
   * If the service account token was generated, it will be displayed.
   * Once generated, copy and add it to the kibana environment variable `ELASTICSEARCH_SERVICEACCOUNT_TOKEN` inside your docker compose file
 

@@ -1,0 +1,18 @@
+FROM node:24-alpine3.21
+# Accept NPM_TOKEN as build argument
+ARG NPM_TOKEN
+#create working direcory /app
+WORKDIR /app
+# copy our package.json, tsconfig.json, .npmrc, src to app
+COPY package.json ./
+COPY tsconfig.json ./
+COPY .npmrc ./
+COPY src ./src
+# COPY tools ./tools
+# run commands
+RUN ls -a
+RUN npm install && npm install -g nodemon
+# epose ports
+EXPOSE 4001
+# what command can be executed
+CMD [ "npm", "run", "dev" ]
