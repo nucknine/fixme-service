@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config({});
 
 if (process.env.ENABLE_APM === '1') {
+  // APM must be loaded conditionally and synchronously
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('elastic-apm-node').start({
     serviceName: 'jobber-notification',

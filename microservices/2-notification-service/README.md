@@ -1,5 +1,52 @@
 # TypeScript Path Aliases
 
+## Package.json Scripts
+
+### Production Scripts
+- **`start`** - Запускает приложение в production режиме через PM2 с 5 инстансами, автоперезапуском и красивым выводом логов
+- **`stop`** - Останавливает все PM2 процессы
+- **`delete`** - Удаляет все PM2 процессы
+
+### Development Scripts
+- **`dev`** - Запускает приложение в dev режиме с автоперезапуском при изменениях файлов через nodemon
+- **`build`** - Компилирует TypeScript в JavaScript и заменяет алиасы путей на реальные пути
+
+### Testing Scripts
+- **`test`** - Запускает Jest тесты с покрытием кода, принудительным завершением и обнаружением открытых хендлеров
+
+### Code Quality Scripts
+- **`lint:check`** - Проверяет код на соответствие правилам ESLint
+- **`lint:fix`** - Автоматически исправляет ошибки ESLint где это возможно
+- **`prettier:check`** - Проверяет форматирование кода согласно правилам Prettier
+- **`prettier:fix`** - Автоматически форматирует код согласно правилам Prettier
+
+### Детальное описание команд
+
+**Build команда:**
+```bash
+tsc --project tsconfig.json && tsc-alias -p tsconfig.json
+```
+1. `tsc --project tsconfig.json` - компилирует TypeScript в JavaScript используя настройки из tsconfig.json
+2. `tsc-alias -p tsconfig.json` - заменяет алиасы путей (например `@notifications/*`) на реальные относительные пути в скомпилированном коде
+
+**Dev команда:**
+```bash
+nodemon -r tsconfig-paths/register src/app.ts
+```
+- `nodemon` - следит за изменениями файлов и автоматически перезапускает приложение
+- `-r tsconfig-paths/register` - регистрирует обработчик алиасов путей для runtime выполнения
+- `src/app.ts` - точка входа приложения
+
+**Test команда:**
+```bash
+jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=false
+```
+- `--coverage=true` - генерирует отчет о покрытии кода тестами
+- `-w=1` - использует только 1 worker процесс (для стабильности)
+- `--forceExit` - принудительно завершает процесс после тестов
+- `--detectOpenHandles` - обнаруживает открытые хендлеры, которые могут препятствовать завершению
+- `--watchAll=false` - отключает режим наблюдения за файлами
+
 ## Connections
 
 ### ENABLE_APM

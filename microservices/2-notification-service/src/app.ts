@@ -2,6 +2,8 @@
 import './polyfills';
 
 if (!global.ReadableStream) {
+  // Dynamic require needed for runtime polyfill
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   global.ReadableStream = require('stream/web').ReadableStream;
 }
 
