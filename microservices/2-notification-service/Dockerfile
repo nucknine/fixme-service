@@ -84,6 +84,7 @@ RUN npm ci --no-audit --no-fund
 # скопирует локальную папку (в Контексте сборки) src в /app/src внутри контейнера
 # Контекст сборки — это всё, что находится в папке, откуда вы запускаете docker build (если не указали другой --file и --build-context).
 COPY src ./src
+COPY tools ./tools
 
 # Собираем проект (например, компиляция TypeScript -> JavaScript в /app/build)
 RUN npm run build

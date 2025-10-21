@@ -24,10 +24,11 @@
 
 **Build команда:**
 ```bash
-tsc --project tsconfig.json && tsc-alias -p tsconfig.json
+tsc --project tsconfig.json && tsc-alias -p tsconfig.json && ts-node tools/copyAssets.ts
 ```
 1. `tsc --project tsconfig.json` - компилирует TypeScript в JavaScript используя настройки из tsconfig.json
 2. `tsc-alias -p tsconfig.json` - заменяет алиасы путей (например `@notifications/*`) на реальные относительные пути в скомпилированном коде
+3. `ts-node tools/copyAssets.ts` - копирует статические ресурсы (например, email шаблоны) из src в build директорию
 
 **Dev команда:**
 ```bash
