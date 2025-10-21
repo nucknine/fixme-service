@@ -50,21 +50,21 @@ export function start(app: Application): void {
 async function startQueues(): Promise<void> {
   const emailChannel: Channel | undefined = await createConnection();
 
-    await consumeAuthEmailMessages(emailChannel);
-    await consumeOrderEmailMessages(emailChannel);
+  await consumeAuthEmailMessages(emailChannel);
+  await consumeOrderEmailMessages(emailChannel);
 
-    await emailChannel?.assertExchange('fixme-email-notification', 'direct')
-    await emailChannel?.assertExchange('fixme-order-notification', 'direct')
+  await emailChannel?.assertExchange('fixme-email-notification', 'direct');
+  await emailChannel?.assertExchange('fixme-order-notification', 'direct');
 
-    // Test message publishing:
-    // const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=12345534dsfsdfs`;
-    // const message: IEmailMessageDetails = {
-    //   receiverEmail: `${config.SENDER_EMAIL}`,
-    //   verifyLink: verificationLink,
-    //   template: 'verifyEmail'
-    // }
-    // await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify(message)));
-    // await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
+  // Test message publishing:
+  // const verificationLink = `${config.CLIENT_URL}/confirm_email?v_token=12345534dsfsdfs`;
+  // const message: IEmailMessageDetails = {
+  //   receiverEmail: `${config.SENDER_EMAIL}`,
+  //   verifyLink: verificationLink,
+  //   template: 'verifyEmail'
+  // }
+  // await emailChannel?.publish('fixme-email-notification', 'auth-email', Buffer.from(JSON.stringify(message)));
+  // await emailChannel?.publish('fixme-order-notification', 'order-email', Buffer.from(JSON.stringify({name:'fixme-order-msg', service: "notifiic"})));
 }
 
 function startElasticSearch(): void {

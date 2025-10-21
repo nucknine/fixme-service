@@ -1,5 +1,5 @@
 import { config } from '@notifications/config';
-import {  IEmailLocals, winstonLogger } from '@nucknine/fixme-shared';
+import { IEmailLocals, winstonLogger } from '@nucknine/fixme-shared';
 import { Channel, ConsumeMessage } from 'amqplib';
 import { Logger } from 'winston';
 import { createConnection } from '@notifications/queues/connection';
@@ -51,23 +51,20 @@ async function consumeAuthEmailMessages(channel: Channel | undefined): Promise<v
         appIcon: 'https://i.ibb.co/Kyp2m0t/cover.png',
         username,
         verifyLink,
-        resetLink,
-
+        resetLink
       };
       await sendEmail(template, receiverEmail, locals);
       channel?.ack(msg!);
     });
-
   } catch (error) {
     log.log('error', 'NotificationService EmailConsumer consumeAuthEmailMessages() method error:', error);
   }
 }
 
 async function consumeOrderEmailMessages(channel: Channel | undefined): Promise<void> {
-
   try {
     if (!channel) {
-      channel = await createConnection() ;
+      channel = await createConnection();
     }
     if (!channel) {
       log.log('error', 'NotificationService EmailConsumer consumeOrderEmailMessages() method error:', "Can't create a channel");
@@ -109,7 +106,6 @@ async function consumeOrderEmailMessages(channel: Channel | undefined): Promise<
         message,
         serviceFee,
         total
-
       } = JSON.parse(jsonStr);
       const locals: IEmailLocals = {
         appLink: `${config.CLIENT_URL}`,
