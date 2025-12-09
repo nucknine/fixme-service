@@ -1,0 +1,3 @@
+@baseUrl = http://localhost:4000
+@urlPath = /api/gateway/v1
+GET {{baseUrl}}{{urlPath}}/gateway-health
