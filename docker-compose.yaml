@@ -175,7 +175,7 @@ services:
       - SECRET_KEY_ONE=bbe654fb66cdc50651355f08b5af52ff
       - SECRET_KEY_TWO=034c7c2ebccecc0fbe0703dc4ae9d057
       - CLIENT_URL=http://localhost:3000
-      - AUTH_BASE_URL=http://localhost:4002
+      - AUTH_BASE_URL=http://auth_container:4002
       - USERS_BASE_URL=http://localhost:4003
       - GIG_BASE_URL=http://localhost:4004
       - MESSAGE_BASE_URL=http://localhost:4005
@@ -192,6 +192,34 @@ services:
         condition: service_started
     networks:
       - elastic
+
+  auth:
+    container_name: auth_container
+    build:
+      context: ../server/3-auth-service
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports:
+      - 4002:4002
+    env_file: ../server/3-auth-service/.env
+    environment:
+      - ENABLE_APM=1
+      - GATEWAY_JWT_TOKEN=3f472800bcd6467b4d3b121d054e57e3
+      - JWT_TOKEN=84f8e8de359784c77e032ceb2cb84df8
+      - NODE_ENV=development
+      - AP_GATEWAY_URL=http://gateway_container:4000
+      - CLIENT_URL=http://localhost:3000
+      - RABBITMQ_ENDPOINT=amqp://fixme:fixmepass@rabbitmq_container:5672
+      - MYSQL_DB=mysql://dict:api@mysql_container:3306/dict_auth
+      - CLOUD_NAME=dwg9ek7pv
+      - CLOUD_API_KEY=373746247683531
+      - CLOUD_API_SECRET=-iQodxUen3OEQ3UwMd411JTwQpDw
+      - ELASTIC_SEARCH_URL=http://elastic:admin1234@elasticsearch_container:9200
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
+    depends_on:
+      - elasticsearch
+      - mysql
 
 networks:
   elastic:
