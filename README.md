@@ -59,3 +59,46 @@ These services are required to be executed first with so as to prevent errors wh
 ## elasticdump npm package
 
 elasticdump --input=/home/valmet/projects/fixme-service/gigs.json --output=http://elastic:admin1234@localhost:9200/gigs --type=data
+
+## To update the notification container after changing package.json, you need to rebuild the Docker image. Here are the steps:
+
+Why rebuild is needed:
+The COPY package.json ./ step in Dockerfile.dev creates a layer with the old package.json
+Docker caches layers, so it won't detect changes unless you rebuild
+The RUN npm install step needs to run again with the new dependencies
+
+Note: Docker Compose looks for .env in the docker-compose.yaml directory , not in the service directory
+
+```
+notifications:
+  build:
+    context: ./microservices/2-notification-service
+    dockerfile: Dockerfile.dev
+    args:
+      NPM_TOKEN: ${NPM_TOKEN}  # ← !!Looks for NPM_TOKEN from docker-compose directory!!
+  env_file: ./microservices/2-notification-service/.env  # ← !!Only for runtime!!
+```
+
+### Option 1: Rebuild and restart the specific service
+
+```
+cd /home/valmet/projects/fixme-service
+docker compose up -d --build notifications
+```
+
+### Option 2: Stop, rebuild, and start
+
+```
+cd /home/valmet/projects/fixme-service
+docker compose stop notifications
+docker compose build notifications
+docker compose up -d notifications
+```
+
+### Option 3: Force rebuild without cache (if dependencies aren't updating)
+
+```
+cd /home/valmet/projects/fixme-service
+docker compose build --no-cache notifications
+docker compose up -d notifications
+```
