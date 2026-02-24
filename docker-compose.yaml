@@ -207,7 +207,7 @@ services:
       - GATEWAY_JWT_TOKEN=3f472800bcd6467b4d3b121d054e57e3
       - JWT_TOKEN=84f8e8de359784c77e032ceb2cb84df8
       - NODE_ENV=development
-      - AP_GATEWAY_URL=http://gateway_container:4000
+      - API_GATEWAY_URL=http://gateway_container:4000
       - CLIENT_URL=http://localhost:3000
       - RABBITMQ_ENDPOINT=amqp://fixme:fixmepass@rabbitmq_container:5672
       - MYSQL_DB=mysql://dict:api@mysql_container:3306/dict_auth
@@ -220,6 +220,40 @@ services:
     depends_on:
       - elasticsearch
       - mysql
+    networks:
+      - elastic
+
+  users:
+    container_name: users_container
+    build:
+      context: ../server/4-users-service
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports:
+      - 4002:4002
+    env_file: ../server/4-users-service/.env
+    environment:
+      - ENABLE_APM=1
+      - GATEWAY_JWT_TOKEN=3f472800bcd6467b4d3b121d054e57e3
+      - JWT_TOKEN=84f8e8de359784c77e032ceb2cb84df8
+      - NODE_ENV=development
+      - API_GATEWAY_URL=http://gateway_container:4000
+      - CLIENT_URL=http://localhost:3000
+      - RABBITMQ_ENDPOINT=amqp://fixme:fixmepass@rabbitmq_container:5672
+      - CLOUD_NAME=dwg9ek7pv
+      - CLOUD_API_KEY=373746247683531
+      - CLOUD_API_SECRET=-iQodxUen3OEQ3UwMd411JTwQpDw
+      - ELASTIC_SEARCH_URL=http://elastic:admin1234@elasticsearch_container:9200
+      - ELASTIC_APM_SERVER_URL=http://localhost:8200
+      - ELASTIC_APM_SECRET_TOKEN=
+      - REDIS_HOST=redis://localhost:6379
+      - DATABASE_URL=mongodb://127.0.0.1:27017/fixme-users
+    depends_on:
+      - elasticsearch
+      - redis
+      - mongodb
+    networks:
+      - elastic
 
 networks:
   elastic:
