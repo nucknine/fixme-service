@@ -131,14 +131,14 @@ services:
   notifications:
     container_name: notification_container
     build:
-      context: ./microservices/2-notification-service
+      context: ../server/2-notification-service
       dockerfile: Dockerfile.dev
       args:
         NPM_TOKEN: ${NPM_TOKEN}
     restart: always
     ports:
       - 4001:4001
-    env_file: ./microservices/2-notification-service/.env
+    env_file: ../server/2-notification-service/.env
     environment:
       - ENABLE_APM=0
       - NODE_ENV=development
