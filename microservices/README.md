@@ -100,3 +100,54 @@ To use a single `node_modules` folder with shared dependencies, set up npm/pnpm/
 The gateway is the API entry point that routes requests to all other services. If you start it before the backend services are ready, it'll fail health checks or throw connection errors when trying to reach them.
 
 With restart: always in docker-compose, the order matters less since containers will keep restarting until dependencies are available.
+
+## Scaling Microservices
+
+### PM2 Cluster Mode vs Container Replicas
+
+**PM2 `-i 5`** runs 5 instances of your app in one container using Node's cluster module:
+- One master process binds to the port, distributes requests to workers via round-robin
+- Good for bare-metal/VM deployments without orchestration
+- All instances share the same port — the master handles routing
+
+**Docker/Kubernetes replicas** run separate containers:
+- Each container is isolated with its own process
+- Orchestrator handles load balancing, restarts, and scaling
+- Better for containerized environments — don't use PM2 clustering inside containers
+
+**Rule of thumb:** Total instances shouldn't exceed 2× your CPU cores. More processes = more context switching overhead.
+
+### Stateless Services & Shared State
+
+Multiple instances can't share in-memory state. If Worker 1 caches data in a variable, Worker 3 won't see it.
+
+**Solution:** Keep services stateless. Store shared state externally:
+- **Database** (PostgreSQL, MongoDB) — persistent data, handles concurrent access
+- **Redis** — sessions, cache, pub/sub messaging
+
+All instances connect to the same external stores, so any instance can handle any request.
+
+### Socket.IO with Redis Adapter
+
+WebSocket connections are persistent — a user connects to one specific instance. Problem: Instance 1 can't send messages to users connected to Instance 3.
+
+**Redis adapter** (`@socket.io/redis-adapter`) solves this:
+```
+Instance 1 emits → Redis Pub/Sub → All instances receive → Instance 3 delivers to its connected user
+```
+
+Setup:
+```typescript
+import { createAdapter } from '@socket.io/redis-adapter';
+io.adapter(createAdapter(pubClient, subClient));
+```
+
+After this, `io.emit()` and `io.to(room).emit()` work across all instances automatically.
+
+### HTTP vs WebSocket Scaling
+
+| Aspect | HTTP Requests | WebSocket (Socket.IO) |
+|--------|---------------|----------------------|
+| Connection | Stateless, any instance handles it | Persistent, tied to one instance |
+| Load balancing | Simple round-robin works | Needs sticky sessions or Redis adapter |
+| Scaling | Just add instances | Requires Redis adapter for cross-instance messaging |
