@@ -150,7 +150,7 @@ services:
       - /:/hostfs:ro
     # --strict.perms=false: skip config file permission checks (needed because the file is mounted from host)
     # -system.hostfs=/hostfs: tell metricbeat the host filesystem is mounted at /hostfs (so it reads host metrics, not container metrics)
-    command: ["--strict.perms=false", "-system.hostfs=/hostfs"]
+    command: ["--strict.perms=false", "--system.hostfs=/hostfs"]
     depends_on:
       - elasticsearch
 

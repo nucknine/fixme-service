@@ -19,6 +19,7 @@ metricbeat.autodiscover:
 
 # --------------- Modules ---------------
 
+metricbeat.modules:
 # --- Docker module ---
 # Collects metrics from Docker containers via the Docker socket
 # Requires /var/run/docker.sock to be mounted into the container
