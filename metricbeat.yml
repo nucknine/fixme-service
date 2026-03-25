@@ -1,0 +1,129 @@
+# Metricbeat configuration
+# Reference: https://sourcegraph.com/github.com/elastic/beats/-/blob/metricbeat/metricbeat.reference.yml
+
+# --------------- Global config ---------------
+# Where to load additional module configs from (e.g. modules.d/docker.yml)
+metricbeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    # Reload module configs as they change:
+    reload.enabled: false
+
+# --------------- Autodiscover ---------------
+# Automatically detect new Docker containers and start collecting metrics from them
+# Uses Docker labels/hints to configure modules dynamically
+metricbeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+# --------------- Modules ---------------
+
+# --- Docker module ---
+# Collects metrics from Docker containers via the Docker socket
+# Requires /var/run/docker.sock to be mounted into the container
+- module: docker
+  metricsets:
+    - "container"     # Container state (running, paused, stopped)
+    - "cpu"           # CPU usage per container
+    - "diskio"        # Disk read/write per container
+    - "healthcheck"   # Docker healthcheck status
+    - "info"          # Docker daemon info (total containers, images, etc.)
+    - "memory"        # Memory usage per container
+    - "network"       # Network bytes in/out per container
+  hosts: ["unix:///var/run/docker.sock"]  # Talk to Docker daemon via socket
+  period: 10s         # Collect every 10 seconds
+  enabled: true
+
+# --- System module ---
+# Collects host-level OS metrics (CPU, memory, disk, processes)
+# Uses hostfs: "/hostfs" because the host filesystem is mounted there (see docker-compose volumes)
+- module: system
+  metricsets:
+    - cpu             # CPU usage
+    - load            # CPU load averages (1m, 5m, 15m)
+    - memory          # Memory usage (total, used, free, swap)
+    - network         # Network IO (bytes sent/received per interface)
+    - process         # Per process metrics (CPU, memory, file descriptors)
+    - process_summary # Process summary (total, running, sleeping, zombie)
+    - uptime          # System uptime
+    - socket_summary  # Socket summary (TCP, UDP counts)
+    - core            # Per CPU core usage
+    - diskio          # Disk IO (reads/writes per device)
+    - filesystem      # File system usage for each mountpoint
+    - fsstat          # File system summary metrics (total/used/free across all mounts)
+    - socket          # Sockets and connection info (linux only)
+  enabled: true
+  period: 10s
+  processes: ['.*']   # Monitor all processes (regex match)
+  hostfs: "/hostfs"   # Path where host root filesystem is mounted inside the container
+  cpu.metrics:  ["percentages","normalized_percentages"]  # Report both raw and normalized (across all cores) CPU %
+  core.metrics: ["percentages"]                           # Report per-core CPU as percentages
+
+# --- RabbitMQ module ---
+# Collects metrics from RabbitMQ management API (port 15672 is the management UI/API port)
+- module: rabbitmq
+  metricsets:
+    - "node"          # Node-level stats (memory, file descriptors, sockets)
+    - "queue"         # Queue depth, message rates, consumers
+    - "connection"    # Active connections
+    - "exchange"      # Exchange message rates
+    - "shovel"        # Shovel plugin status (if used for cross-broker replication)
+  enabled: true
+  period: 10s
+  hosts: ["127.0.0.1:15672"]  # RabbitMQ management API (not AMQP port 5672)
+
+# --- MongoDB module ---
+# Collects metrics from MongoDB server
+- module: mongodb
+  metricsets:
+    - "dbstats"       # Database-level stats (data size, index size, collections count)
+    - "status"        # Server status (connections, opcounters, memory)
+    - "collstats"     # Per-collection stats (document count, size, indexes)
+    - "metrics"       # Internal MongoDB metrics (replication, storage engine)
+    - "replstatus"    # Replica set status (if running a replica set)
+  period: 10s
+  enabled: true
+  # The hosts must be passed as MongoDB URLs in the format:
+  # [mongodb://][user:pass@]host[:port].
+  # The username and password can also be set using the respective configuration
+  # options. The credentials in the URL take precedence over the username and
+  # password configuration options.
+  hosts: ["mongodb://127.0.0.1:27017"]
+
+# --- MySQL module ---
+# Collects metrics from MySQL server
+- module: mysql
+  metricsets:
+    - status          # Global server status variables (connections, queries, threads)
+    - performance     # Performance schema metrics (query execution stats)
+  period: 10s
+  hosts: ["tcp(127.0.0.1:3306)/"]  # MySQL DSN format: tcp(host:port)/
+  username: jobber
+  password: api
+
+# --- PostgreSQL module ---
+# Collects metrics from PostgreSQL server
+- module: postgresql
+  enabled: true
+  metricsets:
+    - database        # Per-database stats (transactions, rows read/written, size)
+    - bgwriter        # Background writer stats (buffers written, checkpoints)
+    - activity        # Active connections and their state (idle, active, waiting)
+  period: 10s
+  hosts: ["postgres://127.0.0.1:5432"]  # PostgreSQL connection URL
+  username: jobber
+  password: api
+
+# --------------- Processors ---------------
+# Enrich events with cloud provider metadata (AWS region, instance ID, etc.)
+# The ~ means "use defaults" — auto-detects the cloud provider
+processors:
+  - add_cloud_metadata: ~
+
+# --------------- Output ---------------
+# Send all collected metrics to Elasticsearch
+output.elasticsearch:
+  hosts: ['http://elasticsearch_container:9200']  # ES running in Docker on the elastic network
+  username: 'elastic'
+  password: 'admin1234'
