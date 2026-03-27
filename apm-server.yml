@@ -1,0 +1,7 @@
+apm-server:
+  host: "0.0.0.0:8200"
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch_container:9200"]
+  username: "elastic"
+  password: "admin1234"

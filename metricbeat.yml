@@ -36,31 +36,6 @@ metricbeat.modules:
   period: 10s         # Collect every 10 seconds
   enabled: true
 
-# --- System module ---
-# Collects host-level OS metrics (CPU, memory, disk, processes)
-# Uses hostfs: "/hostfs" because the host filesystem is mounted there (see docker-compose volumes)
-- module: system
-  metricsets:
-    - cpu             # CPU usage
-    - load            # CPU load averages (1m, 5m, 15m)
-    - memory          # Memory usage (total, used, free, swap)
-    - network         # Network IO (bytes sent/received per interface)
-    - process         # Per process metrics (CPU, memory, file descriptors)
-    - process_summary # Process summary (total, running, sleeping, zombie)
-    - uptime          # System uptime
-    - socket_summary  # Socket summary (TCP, UDP counts)
-    - core            # Per CPU core usage
-    - diskio          # Disk IO (reads/writes per device)
-    - filesystem      # File system usage for each mountpoint
-    - fsstat          # File system summary metrics (total/used/free across all mounts)
-    - socket          # Sockets and connection info (linux only)
-  enabled: true
-  period: 10s
-  processes: ['.*']   # Monitor all processes (regex match)
-  hostfs: "/hostfs"   # Path where host root filesystem is mounted inside the container
-  cpu.metrics:  ["percentages","normalized_percentages"]  # Report both raw and normalized (across all cores) CPU %
-  core.metrics: ["percentages"]                           # Report per-core CPU as percentages
-
 # --- RabbitMQ module ---
 # Collects metrics from RabbitMQ management API (port 15672 is the management UI/API port)
 - module: rabbitmq
@@ -72,7 +47,7 @@ metricbeat.modules:
     - "shovel"        # Shovel plugin status (if used for cross-broker replication)
   enabled: true
   period: 10s
-  hosts: ["127.0.0.1:15672"]  # RabbitMQ management API (not AMQP port 5672)
+  hosts: ["rabbitmq_container:15672"]  # RabbitMQ management API (not AMQP port 5672)
 
 # --- MongoDB module ---
 # Collects metrics from MongoDB server
@@ -90,7 +65,7 @@ metricbeat.modules:
   # The username and password can also be set using the respective configuration
   # options. The credentials in the URL take precedence over the username and
   # password configuration options.
-  hosts: ["mongodb://127.0.0.1:27017"]
+  hosts: ["mongodb://mongodb_container:27017"]
 
 # --- MySQL module ---
 # Collects metrics from MySQL server
@@ -99,8 +74,8 @@ metricbeat.modules:
     - status          # Global server status variables (connections, queries, threads)
     - performance     # Performance schema metrics (query execution stats)
   period: 10s
-  hosts: ["tcp(127.0.0.1:3306)/"]  # MySQL DSN format: tcp(host:port)/
-  username: jobber
+  hosts: ["tcp(mysql_container:3306)/"]  # MySQL DSN format: tcp(host:port)/
+  username: dict
   password: api
 
 # --- PostgreSQL module ---
@@ -112,8 +87,8 @@ metricbeat.modules:
     - bgwriter        # Background writer stats (buffers written, checkpoints)
     - activity        # Active connections and their state (idle, active, waiting)
   period: 10s
-  hosts: ["postgres://127.0.0.1:5432"]  # PostgreSQL connection URL
-  username: jobber
+  hosts: ["postgres://postgres_container:5432"]  # PostgreSQL connection URL
+  username: dict
   password: api
 
 # --------------- Processors ---------------

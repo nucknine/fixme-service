@@ -1,0 +1,101 @@
+heartbeat.config.monitors:
+  # Directory + glob pattern to search for additional monitor config files
+  # ${path.config} is a built-in Beats variable that resolves to the config directory
+  # inside the container (e.g. /usr/share/heartbeat)
+  # This allows splitting monitors into separate .yml files in the monitors.d/ folder
+  # instead of defining everything inline in this file
+  path: ${path.config}/monitors.d/*.yml
+  # If enabled, heartbeat will periodically check the config.monitors path for changes
+  reload.enabled: true
+  # How often to check for changes
+  reload.period: 5s
+
+heartbeat.monitors:
+# --- API Gateway Service ---
+- type: http
+  id: fixme-api-gateway
+  name: Fix Me API Gateway Service
+  schedule: '@every 5s'
+  # When we run services in container - change to container name
+  # currently we run them in terminals with npm run dev
+  # Using network_mode: host so localhost reaches the host machine directly
+  urls: ['http://localhost:4000/gateway-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Notification Service ---
+- type: http
+  id: fixme-notification
+  name: Fix Me Notification Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4001/notification-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Auth Service ---
+- type: http
+  id: fixme-auth
+  name: Fix Me Auth Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4002/auth-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Users Service ---
+- type: http
+  id: fixme-users
+  name: Fix Me Users Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4003/user-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Gig Service ---
+- type: http
+  id: fixme-gig
+  name: Fix Me Gig Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4004/gig-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Chat Service ---
+- type: http
+  id: fixme-chat
+  name: Fix Me Chat Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4005/chat-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Order Service ---
+- type: http
+  id: fixme-order
+  name: Fix Me Order Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4006/order-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --- Review Service ---
+- type: http
+  id: fixme-review
+  name: Fix Me Review Service
+  schedule: '@every 5s'
+  urls: ['http://localhost:4007/review-health']
+  check.request.method: GET
+  check.response.status: [200]
+
+# --------------- Processors ---------------
+processors:
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+monitoring.enabled: true
+
+# --------------- Output ---------------
+# Send all heartbeat data to Elasticsearch
+output.elasticsearch:
+  hosts: ['http://localhost:9200']
+  username: 'elastic'
+  password: 'admin1234'

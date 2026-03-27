@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# .ready-tmux — tmux layout for this project
+#
+# The sessionizer runs this when you first navigate here.
+# Uses $PWD as base — works regardless of where the project is cloned.
+#
+# Customize the layout below to match your project structure.
+#
+
+BASE="/home/valmet"
+
+# Example: split into 3 panes
+tmux split-window -v -c "$BASE"
+tmux split-window -h -c "$BASE"
+tmux select-pane -t 0
