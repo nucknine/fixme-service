@@ -136,6 +136,7 @@ services:
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     depends_on:
       - elasticsearch
+
   metricbeat:
     container_name: metricbeat_container
     image: docker.elastic.co/beats/metricbeat:9.0.0
@@ -168,10 +169,10 @@ services:
       - NET_RAW
     # Use host network so heartbeat can reach services running on the host via localhost
     # This is needed on WSL2 where host.docker.internal doesn't route to the WSL2 VM
-    network_mode: host
-    extra_hosts:
+    # network_mode: host
+    # extra_hosts:
       # Allow reaching containers by name (elasticsearch) via the Docker DNS
-      - "elasticsearch_container:127.0.0.1"
+      # - "elasticsearch_container:127.0.0.1"
     volumes:
       - "./heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro"
     command: ["--strict.perms=false"]
