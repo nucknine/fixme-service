@@ -190,23 +190,9 @@ services:
       - elastic
     volumes:
       - "./apm-server.yml:/usr/share/apm-server/apm-server.yml:ro"
-    command: >
-      apm-server -e
-        -E apm-server.rum.enabled=true
-        -E setup.kibana.host=kibana_container:5601
-        -E setup.template.settings.index.number_of_replicas=0
-        -E apm-server.kibana.enabled=true
-        -E apm-server.kibana.host=kibana_container:5601
-        -E apm-server.kibana.protocol=http
-        -E strict.perms=false
-        -E apm-server.auth.anonymous.enabled=true
+    command: ["--strict.perms=false", "-e"]
     # -e: log to stderr instead of file
-    # apm-server.rum.enabled: enable Real User Monitoring (captures browser-side performance data)
-    # setup.kibana.host: Kibana endpoint for loading dashboards and index patterns
-    # setup.template.settings.index.number_of_replicas=0: no replicas needed for single-node ES
-    # apm-server.kibana.enabled + host + protocol: connect APM to Kibana for UI integration
-    # strict.perms=false: skip config file permission checks (needed for volume-mounted configs)
-    # apm-server.auth.anonymous.enabled: allow agents to send data without an API key or secret token
+    # --strict.perms=false: skip config file permission checks (needed for volume-mounted configs)
     depends_on:
       elasticsearch:
         condition: service_healthy

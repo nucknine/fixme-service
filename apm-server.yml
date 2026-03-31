@@ -1,24 +1,26 @@
 apm-server:
-  host: "apm_server_container:8200"
+  # Listen on all interfaces so services can send traces
+  host: "0.0.0.0:8200"
 
+  # Enable Real User Monitoring (captures browser-side performance data)
+  rum.enabled: true
 
-auth:
-  secret_token: ''
+  # Connect APM to Kibana for UI integration (dashboards, service maps)
+  kibana.enabled: true
+  kibana.host: "kibana_container:5601"
+  kibana.protocol: "http"
 
+  # Allow agents to send data without an API key or secret token
+  auth.anonymous.enabled: true
+
+# No replicas needed for single-node Elasticsearch
+setup.template.settings.index.number_of_replicas: 0
+
+# Kibana endpoint for loading dashboards and index patterns
+setup.kibana.host: "kibana_container:5601"
+
+# Send APM data to Elasticsearch
 output.elasticsearch:
   hosts: ["http://elasticsearch_container:9200"]
-  enabled: true
   username: "elastic"
   password: "admin1234"
-  protocol: "http"
-  ssl.enabled: false
-
-
-monitoring.enabled: true
-
-monitoring.elasticsearch:
-  username: "elastic"
-  password: "admin1234"
-  protocol: "http"
-  hosts: ["http://elasticsearch_container:9200"]
-
