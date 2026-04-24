@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fixme-gateway-ingress
+  namespace: production
+spec:
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: fixme-gateway
+      port: 
+        number: 4000
+  tls:
+    - hosts:
+      - fixmeapp.com
+      secretName: gateway-ingress-tls
+  rules:
+  - host: fixmeapp.com
+    http:
+      paths:
+      - path: /api/gateway/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: fixme-gateway
+            port: 
+              number: 4000

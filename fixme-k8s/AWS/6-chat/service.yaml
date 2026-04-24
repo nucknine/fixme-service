@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fixme-chat
+  namespace: production
+spec:
+  type: ClusterIP
+  selector:
+    app: fixme-chat
+  ports:
+  - name: chat
+    port: 4005
+    targetPort: 4005
+    protocol: TCP

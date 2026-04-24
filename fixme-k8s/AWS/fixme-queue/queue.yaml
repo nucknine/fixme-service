@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fixme-queue
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fixme-queue
+  template:
+    metadata:
+      labels:
+        app: fixme-queue
+    spec:
+      containers:
+      - name: fixme-queue
+        image: rabbitmq:3.12.8-management-alpine
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: fixme-backend-secret
+              key: fixme-rabbitmq-user
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: fixme-backend-secret
+              key: fixme-rabbitmq-password
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "0.5"
+          requests:
+            memory: 150Mi
+            cpu: 100m
+        ports:
+        - name: queue
+          containerPort: 5672
+          protocol: TCP
+        - name: mgmt
+          containerPort: 15672
+          protocol: TCP
+        volumeMounts:
+          - name: rabbittmq-aws-storage
+            mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: rabbittmq-aws-storage
+          persistentVolumeClaim:
+            claimName: rabbitmq-pvc

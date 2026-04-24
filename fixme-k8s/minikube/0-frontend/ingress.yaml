@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fixme-frontend-ingress
+  namespace: production
+spec:
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: fixme-frontend
+      port: 
+        number: 80
+  tls:
+    - hosts:
+      - fixmeapp.info
+      secretName: frontend-ingress-tls
+  rules:
+  - host: fixmeapp.info
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fixme-frontend
+            port: 
+              number: 80

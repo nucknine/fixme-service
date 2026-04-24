@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fixme-mongo
+  namespace: production
+spec:
+  type: ClusterIP
+  selector:
+    app: fixme-mongo
+  ports:
+  - name: fixme-mongo
+    port: 27017
+    targetPort: 27017
