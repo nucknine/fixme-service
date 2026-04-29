@@ -3,9 +3,9 @@
 ## Prerequisites
 
 - Docker Desktop (Windows) with WSL2 integration enabled
-- WSL2 distro (Ub24)
+- WSL2 distro (Ubuntu 24) with WSLg enabled (default on Windows 11)
 - Minikube installed inside WSL2
-- Lens K8s IDE installed on Windows
+- Lens installed inside WSL2 (renders on Windows via WSLg)
 
 ## Install Minikube (inside WSL2)
 
@@ -14,13 +14,36 @@ curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikub
 sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
 ```
 
-## Start Minikube
-
-Always start with the insecure registry flag:
+## Install Lens (inside WSL2)
 
 ```bash
-minikube start --driver=docker --insecure-registry "10.0.0.0/24"
+curl -fsSL https://downloads.k8slens.dev/keys/gpg | sudo gpg --dearmor -o /usr/share/keyrings/lens-archive-keyring.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/lens-archive-keyring.gpg] https://downloads.k8slens.dev/apt/debian stable main" \
+  | sudo tee /etc/apt/sources.list.d/lens.list
+sudo apt-get update && sudo apt-get install -y lens
 ```
+
+## Start Minikube
+
+First time only (flags are remembered for subsequent starts):
+
+```bash
+minikube start --driver=docker --listen-address=0.0.0.0 --insecure-registry="10.0.0.0/24"
+```
+
+After that, just:
+
+```bash
+minikube start
+```
+
+## Launch Lens
+
+```bash
+lens-desktop &
+```
+
+Lens reads `~/.kube/config` directly from WSL2. No kubeconfig syncing or TLS workarounds needed.
 
 ## Enable Registry Addon
 
@@ -44,29 +67,16 @@ In Kubernetes manifests, reference images as:
 image: localhost:59047/my-image
 ```
 
-## Lens IDE Setup (Windows)
-
-Lens reads kubeconfig from `C:\Users\<username>\.kube\config`.
-Since minikube runs inside WSL2, the kubeconfig needs to be copied with embedded certs:
+## After Reboot
 
 ```bash
-CA_DATA=$(base64 -w 0 /home/valmet/.minikube/ca.crt)
-CLIENT_CERT_DATA=$(base64 -w 0 /home/valmet/.minikube/profiles/minikube/client.crt)
-CLIENT_KEY_DATA=$(base64 -w 0 /home/valmet/.minikube/profiles/minikube/client.key)
-
-mkdir -p /mnt/c/Users/tremaksiol/.kube
-
-sed \
-  -e "s|    certificate-authority: .*|    certificate-authority-data: $CA_DATA|" \
-  -e "s|    client-certificate: .*|    client-certificate-data: $CLIENT_CERT_DATA|" \
-  -e "s|    client-key: .*|    client-key-data: $CLIENT_KEY_DATA|" \
-  ~/.kube/config > /mnt/c/Users/tremaksiol/.kube/config
+minikube start
+lens-desktop &
 ```
-
-Re-run this after `minikube delete` + `minikube start` since certs and ports change.
 
 ## Notes
 
 - `minikube delete` is required to change startup flags like `--insecure-registry`
-- WSL2 IP can change on reboot — Lens kubeconfig may need updating
+- Lens runs inside WSL2 and renders on Windows via WSLg — no IP or kubeconfig issues
 - Docker Desktop forwards WSL2 localhost ports to Windows, so `localhost` works from both sides
+- See [MINIKUBE-LENS-SETUP.md](MINIKUBE-LENS-SETUP.md) for detailed setup steps and kubectl cheat sheet
