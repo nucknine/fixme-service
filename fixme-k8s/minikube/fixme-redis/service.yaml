@@ -1,13 +1,20 @@
-apiVersion: v1
-kind: Service
+# Glossary:
+#   SVC       = Service — a stable network endpoint that routes traffic to pods
+#   ClusterIP = A virtual IP only reachable from inside the cluster (not from outside)
+#   FQDN      = Fully Qualified Domain Name — e.g. fixme-redis.production.svc.cluster.local
+#
+# Service: Exposes the Redis StatefulSet to other pods inside the cluster.
+# Other microservices connect to Redis using "fixme-redis.production.svc.cluster.local:6379".
+apiVersion: v1 # Core API version
+kind: Service # Resource type: a stable network endpoint for a set of pods
 metadata:
-  name: fixme-redis
-  namespace: production
+  name: fixme-redis # Service name — used as the DNS hostname within the cluster
+  namespace: production # Namespace where this service lives
 spec:
-  type: ClusterIP
+  type: ClusterIP # Internal-only IP (not exposed outside the cluster)
   selector:
-    app: fixme-redis
+    app: fixme-redis # Routes traffic to pods with this label (matches the StatefulSet pods)
   ports:
-  - name: fixme-redis
-    port: 6379
-    targetPort: 6379
+    - name: fixme-redis # Port name (used for readability and by probes)
+      port: 6379 # Port the service listens on (what other pods connect to)
+      targetPort: 6379 # Port on the Redis container to forward traffic to

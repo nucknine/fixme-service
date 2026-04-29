@@ -1,8 +1,15 @@
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
+# Glossary:
+#   SC   = StorageClass — defines a "type" of storage (local disk, cloud SSD, etc.)
+#   PV   = PersistentVolume — a specific chunk of storage provisioned in the cluster
+#   PVC  = PersistentVolumeClaim — a pod's request for storage (binds to a matching PV)
+#
+# StorageClass: Defines how persistent storage is provisioned for Redis.
+# This uses local storage on the minikube node (no cloud provisioner).
+apiVersion: storage.k8s.io/v1 # API group for storage resources
+kind: StorageClass # Resource type: defines a class of storage
 metadata:
-  name: redis-local-storage
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
-allowVolumeExpansion: true
-reclaimPolicy: Delete
+  name: redis-local-storage # Name referenced by PV and PVC to bind them together
+provisioner: kubernetes.io/no-provisioner # No dynamic provisioning — PVs must be created manually
+volumeBindingMode: WaitForFirstConsumer # Delay binding until a pod actually needs the volume (avoids scheduling issues)
+allowVolumeExpansion: true # Allow resizing the volume later without recreating it
+reclaimPolicy: Delete # When the PVC is deleted, the PV and its data are cleaned up

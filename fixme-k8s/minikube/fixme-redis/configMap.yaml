@@ -1,11 +1,19 @@
-# upate passwords for masterauth and requirepass
-apiVersion: v1
-kind: ConfigMap
+# Glossary:
+#   CM   = ConfigMap — stores non-secret configuration data as key-value pairs
+#   STS  = StatefulSet — the workload that mounts this ConfigMap into Redis pods
+#
+# ConfigMap: Stores the redis.conf configuration file as cluster data.
+# Mounted into the Redis pods by the StatefulSet.
+# The redis.conf below is a full default config with custom overrides at the top.
+#
+# ⚠️  UPDATE passwords for masterauth and requirepass before deploying!
+apiVersion: v1 # Core API version
+kind: ConfigMap # Resource type: key-value config data injected into pods
 metadata:
-  name: redis-config
-  namespace: production
+  name: redis-config # Name — referenced by the StatefulSet's volume mount
+  namespace: production # Namespace where this ConfigMap lives
 data:
-  redis.conf: |
+  redis.conf: | # The key "redis.conf" becomes a file when mounted as a volume
     # Redis configuration file example.
     #
     # Note that in order to read the configuration file, Redis must be
@@ -13,7 +21,9 @@ data:
     #
     # ./redis-server /path/to/redis.conf
     #slaveof redis-master-0.redis-master.redis.svc.cluster.local 6379
+    # Password replicas use to authenticate with the master
     masterauth thisismyownpassword123@
+    # Password clients must provide to connect to this Redis instance
     requirepass thisismyownpassword123@
     # Note on units: when memory size is needed, it is possible to specify
     # it in the usual form of 1k 5GB 4M and so forth:
@@ -76,6 +86,7 @@ data:
     # IF YOU ARE SURE YOU WANT YOUR INSTANCE TO LISTEN TO ALL THE INTERFACES
     # JUST COMMENT THE FOLLOWING LINE.
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # CUSTOM: Listen on all interfaces so other pods can connect
     bind 0.0.0.0
 
     # Protected mode is a layer of security protection, in order to avoid that
@@ -95,10 +106,12 @@ data:
     # you are sure you want clients from other hosts to connect to Redis
     # even if no authentication is configured, nor a specific set of interfaces
     # are explicitly listed using the "bind" directive.
+    # CUSTOM: Disabled because we use password auth (requirepass) instead
     protected-mode no
 
     # Accept connections on the specified port, default is 6379 (IANA #815344).
     # If port 0 is specified Redis will not listen on a TCP socket.
+    # CUSTOM: Standard Redis port — matches the Service and container port
     port 6379
 
     # TCP listen() backlog.
@@ -369,6 +382,7 @@ data:
     # The Append Only File will also be created inside this directory.
     #
     # Note that you must specify a directory here, not a file name.
+    # CUSTOM: Data directory — matches the PVC mountPath in the StatefulSet
     dir "/data"
 
     ################################# REPLICATION #################################
@@ -399,7 +413,7 @@ data:
     # starting the replication synchronization process, otherwise the master will
     # refuse the replica request.
     #
-    
+
     #
     # However this is not enough if you are using Redis ACLs (for Redis version
     # 6 or greater), and the default user is not capable of running the PSYNC
@@ -793,7 +807,7 @@ data:
     # AUTH <password> as usually, or more explicitly with AUTH default <password>
     # if they follow the new protocol: both will work.
     #
-    
+
 
     # Command renaming (DEPRECATED).
     #

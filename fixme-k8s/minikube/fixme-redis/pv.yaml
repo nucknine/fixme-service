@@ -1,13 +1,20 @@
-apiVersion: v1
-kind: PersistentVolume
+# Glossary:
+#   PV   = PersistentVolume — a specific chunk of storage in the cluster
+#   PVC  = PersistentVolumeClaim — a pod's request for storage (binds to a matching PV)
+#   SC   = StorageClass — the "type" of storage this PV belongs to
+#
+# PersistentVolume: Reserves a piece of storage on the minikube node for Redis data.
+# This is the actual disk space that the StatefulSet's PVC will bind to.
+apiVersion: v1 # Core API version
+kind: PersistentVolume # Resource type: a chunk of storage in the cluster
 metadata:
-  name: redis-pv
-  namespace: production
+  name: redis-pv # Unique name for this volume
+  namespace: production # Namespace (note: PVs are cluster-scoped, but metadata namespace is informational here)
 spec:
-  storageClassName: redis-local-storage
+  storageClassName: redis-local-storage # Must match the StorageClass name — links PV to the correct class
   capacity:
-    storage: 1Gi
+    storage: 1Gi # Total size of the volume (1 gigabyte)
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteOnce # Only one node can mount this volume for read/write at a time
   hostPath:
-    path: "/storage/data1"
+    path: "/storage/data1" # Directory on the minikube node where data is physically stored

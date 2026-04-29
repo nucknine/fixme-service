@@ -1,85 +1,111 @@
-apiVersion: apps/v1
-kind: StatefulSet
+# Glossary:
+#   STS  = StatefulSet — like a Deployment but with stable pod names and persistent storage
+#   PVC  = PersistentVolumeClaim — each pod gets its own PVC (e.g. data-fixme-redis-0)
+#   PV   = PersistentVolume — the actual storage a PVC binds to
+#   FQDN = Fully Qualified Domain Name — e.g. fixme-redis-0.fixme-redis.production.svc.cluster.local
+#
+# StatefulSet: Deploys Redis with stable network identity and persistent storage.
+# Unlike a Deployment, a StatefulSet gives each pod a predictable name (fixme-redis-0, fixme-redis-1, etc.)
+# and ensures persistent volumes are retained across pod restarts.
+apiVersion: apps/v1 # API group for workload resources
+kind: StatefulSet # Resource type: manages stateful pods with stable identities
 metadata:
-  name: fixme-redis
-  namespace: production
+  name: fixme-redis # Name of the StatefulSet
+  namespace: production # Namespace where Redis runs
 spec:
-  serviceName: fixme-redis
-  # the simple reason why I am not using 2 or 3 replicas (so that 1 is the master and the others followers)
-  # is because I don't have a lot of space on my machine and minikube is just one single node. We have
-  # other objects that will be created and I don't want minikube to run out of memory
-  replicas: 1
+  serviceName: fixme-redis # Must match the Service name — used for DNS-based pod discovery
+  # Using 1 replica to save resources on a single-node minikube cluster.
+  # For HA you'd use 3 replicas (1 master + 2 followers), but that needs more memory.
+  replicas: 1 # Number of Redis pods to run
   selector:
     matchLabels:
-      app: fixme-redis
+      app: fixme-redis # Pods managed by this StatefulSet must have this label
   template:
     metadata:
       labels:
-        app: fixme-redis
+        app: fixme-redis # Label applied to each pod — must match selector above and Service selector
     spec:
+      # --- Init Container ---
+      # Runs before the main Redis container starts.
+      # Copies the redis.conf from the ConfigMap and configures master/replica roles.
       initContainers:
-      - name: config
-        image: redis:alpine
-        command: [ "sh", "-c" ]
-        args:
-          - |
-            cp /tmp/redis/redis.conf /etc/redis/redis.conf
-            
-            echo "finding master..."
-            MASTER_FQDN=`hostname  -f | sed -e 's/fixme-redis-[0-9]\./fixme-redis-0./'`
-            if [ "$(redis-cli -h sentinel -p 5000 ping)" != "PONG" ]; then
-              echo "master not found, defaulting to fixme-redis-0"
+        - name: config # Name of the init container
+          image: redis:alpine # Uses Redis image so redis-cli is available for sentinel checks
+          command: [ "sh", "-c" ] # Run a shell script
+          args:
+            - |
+              # Copy the base redis.conf from the ConfigMap (read-only) to a writable volume
+              cp /tmp/redis/redis.conf /etc/redis/redis.conf
 
-              if [ "$(hostname)" == "fixme-redis-0" ]; then
-                echo "this is fixme-redis-0, not updating config..."
+              echo "finding master..."
+              # Derive the master's FQDN by replacing this pod's index with 0
+              # e.g. fixme-redis-1.fixme-redis.production → fixme-redis-0.fixme-redis.production
+              MASTER_FQDN=`hostname  -f | sed -e 's/fixme-redis-[0-9]\./fixme-redis-0./'`
+              if [ "$(redis-cli -h sentinel -p 5000 ping)" != "PONG" ]; then
+                # No sentinel available — fall back to assuming fixme-redis-0 is master
+                echo "master not found, defaulting to fixme-redis-0"
+
+                if [ "$(hostname)" == "fixme-redis-0" ]; then
+                  echo "this is fixme-redis-0, not updating config..."
+                  # Pod 0 is the master — no slaveof directive needed
+                else
+                  echo "updating redis.conf..."
+                  # This pod is a replica — configure it to replicate from the master
+                  echo "slaveof $MASTER_FQDN 6379" >> /etc/redis/redis.conf
+                fi
               else
-                echo "updating redis.conf..."
-                echo "slaveof $MASTER_FQDN 6379" >> /etc/redis/redis.conf
+                # Sentinel is available — ask it who the current master is
+                echo "sentinel found, finding master"
+                MASTER="$(redis-cli -h sentinel -p 5000 sentinel get-master-addr-by-name mymaster | grep -E '(^fixme-redis-\d{1,})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})')"
+                echo "master found : $MASTER, updating redis.conf"
+                echo "slaveof $MASTER 6379" >> /etc/redis/redis.conf
               fi
-            else
-              echo "sentinel found, finding master"
-              MASTER="$(redis-cli -h sentinel -p 5000 sentinel get-master-addr-by-name mymaster | grep -E '(^fixme-redis-\d{1,})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})')"
-              echo "master found : $MASTER, updating redis.conf"
-              echo "slaveof $MASTER 6379" >> /etc/redis/redis.conf
-            fi
-        volumeMounts:
-        - name: redis-config
-          mountPath: /etc/redis/
-        - name: config
-          mountPath: /tmp/redis/
+          volumeMounts:
+            - name: redis-config # Writable volume where the final redis.conf is placed
+              mountPath: /etc/redis/
+            - name: config # Read-only ConfigMap volume with the base redis.conf
+              mountPath: /tmp/redis/
+        # --- Main Redis Container ---
       containers:
-      - name: fixme-redis
-        image: redis:alpine
-        command: ["redis-server"]
-        args: ["/etc/redis/redis.conf"]
-        ports:
-        - containerPort: 6379
-          name: fixme-redis
-        readinessProbe:
-          periodSeconds: 10
-          tcpSocket:
-            port: fixme-redis
-        livenessProbe:
-          periodSeconds: 10
-          tcpSocket:
-            port: fixme-redis
-        volumeMounts:
-        - name: data
-          mountPath: /data
-        - name: redis-config
-          mountPath: /etc/redis/
+        - name: fixme-redis # Container name
+          image: redis:alpine # Lightweight Redis image
+          command: [ "redis-server" ] # Start Redis server
+          args: [ "/etc/redis/redis.conf" ] # Use the config prepared by the init container
+          ports:
+            - containerPort: 6379 # Redis default port
+              name: fixme-redis # Named port — referenced by probes and the Service
+          readinessProbe:
+            # Checks if Redis is ready to accept connections
+            periodSeconds: 10 # Check every 10 seconds
+            tcpSocket:
+              port: fixme-redis # Try to open a TCP connection to port 6379
+          livenessProbe:
+            # Checks if Redis is still alive — restarts the pod if it fails
+            periodSeconds: 10 # Check every 10 seconds
+            tcpSocket:
+              port: fixme-redis # Try to open a TCP connection to port 6379
+          volumeMounts:
+            - name: data # Persistent storage for Redis data (RDB dumps, AOF files)
+              mountPath: /data
+            - name: redis-config # The writable config volume (shared with init container)
+              mountPath: /etc/redis/
+        # --- Volumes ---
       volumes:
-      - name: redis-config
-        emptyDir: {}
-      - name: config
-        configMap:
-          name: redis-config
+        - name: redis-config # Writable emptyDir — init container writes the final config here
+          emptyDir: {}
+        - name: config # Read-only mount of the ConfigMap containing the base redis.conf
+          configMap:
+            name: redis-config # References the ConfigMap by name
+
+  # --- Volume Claim Templates ---
+  # Each pod in the StatefulSet gets its own PVC (e.g. data-fixme-redis-0).
+  # The PVC persists across pod restarts so Redis data survives rescheduling.
   volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "redis-local-storage"
-      resources:
-        requests:
-          storage: 500Mi
+    - metadata:
+        name: data # PVC name prefix — becomes "data-fixme-redis-0", "data-fixme-redis-1", etc.
+      spec:
+        accessModes: [ "ReadWriteOnce" ] # One pod at a time can mount this volume
+        storageClassName: "redis-local-storage" # Must match the StorageClass name
+        resources:
+          requests:
+            storage: 500Mi # Each pod requests 500MB of persistent storage
